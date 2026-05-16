@@ -1,0 +1,17 @@
+[
+  {
+    "url": "https://raw.githubusercontent.com/mattpocock/skills/main/skills/productivity/grill-me/SKILL.md",
+    "sha": "74147eb6010a65957efef2b9e0f0b3ff935c1def7fc117697151b1d0f3610556",
+    "took": "One-question-at-a-time interview methodology; agent recommends an answer for each; prefer codebase exploration over asking when the answer is in the code."
+  },
+  {
+    "url": "https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/grill-with-docs/SKILL.md",
+    "sha": "3e35025119ba03efe7983dfdec3c8b96918142e3978512f3c2bf66d428310c7e",
+    "took": "Three-criteria rule for ADRs (hard-to-reverse + surprising + real trade-off); discipline of offering ADRs sparingly; CONTEXT.md compatibility stub format; challenge-against-glossary discipline."
+  },
+  {
+    "url": "https://raw.githubusercontent.com/av/facts/main/README.md",
+    "sha": "7fc0029b873c9480bfbecf7d0a3eb4cd972f980af527e6292131ed6cc2d462d3",
+    "took": "Atomic-claim lifecycle (@draft -> @spec -> @implemented); the .facts file format; idea that resolved decisions should be short, structured, and ideally machine-verifiable rather than freeform prose."
+  }
+]

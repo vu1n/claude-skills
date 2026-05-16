@@ -1,0 +1,101 @@
+name: check-skill-sources
+
+on:
+  schedule:
+    - cron: "0 14 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Check each source for drift
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          shopt -s nullglob
+          sources_files=(skills/*/sources.json)
+          if [ "${#sources_files[@]}" -eq 0 ]; then
+            echo "No sources.json files found."
+            exit 0
+          fi
+
+          for sources_file in "${sources_files[@]}"; do
+            skill_dir=$(dirname "$sources_file")
+            skill_name=$(basename "$skill_dir")
+            count=$(jq 'length' "$sources_file")
+
+            for i in $(seq 0 $((count - 1))); do
+              url=$(jq -r ".[$i].url" "$sources_file")
+              recorded_sha=$(jq -r ".[$i].sha" "$sources_file")
+              took=$(jq -r ".[$i].took // \"\"" "$sources_file")
+
+              echo "Checking $skill_name :: $url"
+              tmp=$(mktemp)
+              http_status=$(curl -sS -o "$tmp" -w "%{http_code}" -L --max-time 30 "$url" || echo "000")
+
+              if [ "$http_status" != "200" ]; then
+                issue_title="${skill_name} source unreachable: ${url}"
+                existing=$(gh issue list --search "\"${issue_title}\" in:title" --state open --json number --jq 'length')
+                if [ "$existing" = "0" ]; then
+                  gh issue create \
+                    --title "$issue_title" \
+                    --body "$(printf 'Source for skill `%s` returned HTTP `%s`.\n\n- URL: %s\n- Recorded SHA: `%s`\n\n@claude investigate whether this source moved, was renamed, or was removed upstream, and update `%s` accordingly.' "$skill_name" "$http_status" "$url" "$recorded_sha" "$sources_file")"
+                else
+                  echo "  Issue already open for unreachable source; skipping."
+                fi
+                rm -f "$tmp"
+                continue
+              fi
+
+              new_sha=$(sha256sum "$tmp" | cut -d' ' -f1)
+              if [ "$new_sha" = "$recorded_sha" ]; then
+                echo "  No change."
+                rm -f "$tmp"
+                continue
+              fi
+
+              short=${new_sha:0:7}
+              branch="update-source/${skill_name}/${short}"
+
+              existing_pr=$(gh pr list --head "$branch" --state open --json number --jq 'length')
+              if [ "$existing_pr" != "0" ]; then
+                echo "  PR already open for ${branch}; skipping."
+                rm -f "$tmp"
+                continue
+              fi
+
+              git checkout main
+              git pull --ff-only origin main
+              git checkout -b "$branch"
+
+              jq --arg sha "$new_sha" ".[$i].sha = \$sha" "$sources_file" > "${sources_file}.tmp"
+              mv "${sources_file}.tmp" "$sources_file"
+
+              git add "$sources_file"
+              git commit -m "chore(${skill_name}): bump source SHA for ${url}"
+              git push -u origin "$branch"
+
+              gh pr create \
+                --base main \
+                --head "$branch" \
+                --title "chore(${skill_name}): upstream source changed" \
+                --body "$(printf 'Upstream change detected for [%s](%s).\n\n- **Skill**: `%s`\n- **Recorded SHA**: `%s`\n- **New SHA**: `%s`\n- **What we took**: %s\n\n@claude review the upstream and decide whether anything is worth absorbing into `%s/SKILL.md`. If yes, edit `SKILL.md` in this PR. If no, merge as-is to record that we have seen the new version.' "$url" "$url" "$skill_name" "$recorded_sha" "$new_sha" "$took" "$skill_dir")"
+
+              rm -f "$tmp"
+            done
+          done
