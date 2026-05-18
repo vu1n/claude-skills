@@ -1,0 +1,17 @@
+[
+  {
+    "url": "https://raw.githubusercontent.com/mattpocock/skills/main/skills/productivity/grill-me/SKILL.md",
+    "sha": "74147eb6010a65957efef2b9e0f0b3ff935c1def7fc117697151b1d0f3610556",
+    "took": "One-question-at-a-time interview methodology; agent recommends an answer for each; prefer codebase exploration over asking when the answer is in the code."
+  },
+  {
+    "url": "https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/grill-with-docs/SKILL.md",
+    "sha": "3e35025119ba03efe7983dfdec3c8b96918142e3978512f3c2bf66d428310c7e",
+    "took": "Three-criteria rule for ADRs (hard-to-reverse + surprising + real trade-off); discipline of offering ADRs sparingly; CONTEXT.md compatibility stub format; challenge-fuzzy-language and stress-test-with-scenarios sharpening discipline."
+  },
+  {
+    "url": "https://raw.githubusercontent.com/ThariqS/html-effectiveness/main/README.md",
+    "sha": "2875d5eea955b125bd73f0d6120c53458c2797b5a3513de52a21f16930f24cb0",
+    "took": "Self-contained single-file HTML artifacts with no daemon, no build step; copy-to-clipboard feedback as the durable export mechanism. Anchor-into-clipboard pattern adapts this: instead of a copy-export button at the end, each annotatable region has an anchor button that copies a markdown reference the user pastes into a sidecar feedback.md."
+  }
+]
