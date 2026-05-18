@@ -19,7 +19,10 @@ cp -r skills/grill-with-lavish ~/.claude/skills/
 ## Skills
 
 - **`grill-with-html`** — Interview the user one question at a time about a UI/UX or design plan. Each turn produces a versioned self-contained HTML artifact; resolved decisions accumulate in a sidecar markdown file. No daemon, no install, no dependencies — the artifact is a single HTML file the user opens in any browser, and feedback flows through anchor-into-clipboard references and a sidecar `feedback.md`. Composes the grill-me interview methodology, grill-with-docs ADR discipline, and the html-effectiveness copy-export pattern. See [`skills/grill-with-html/SKILL.md`](skills/grill-with-html/SKILL.md).
-- **`cocoon`** — MCP facade over the [printing-press](https://github.com/mvanhorn/cli-printing-press) CLI corpus: four meta-tools (`find_capability`, `describe_capability`, `call_capability`, `list_apis`) let an agent discover and call any indexed API on demand, with lazy CLI materialization and per-call sandboxed execution. Skill at [`skills/cocoon/SKILL.md`](skills/cocoon/SKILL.md), runtime at [`cocoon/`](cocoon/).
+
+## Spun off
+
+- **`cocoon`** — moved to its own repo and now ships its skill alongside the published runtime: [vu1n/cocoon](https://github.com/vu1n/cocoon).
 
 ## Source tracking
 
