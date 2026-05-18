@@ -6,7 +6,7 @@
   },
   {
     "url": "https://raw.githubusercontent.com/vu1n/pillbox/main/README.md",
-    "sha": "c66042b4ca25f3655c267155a9d22d86ce06edf1a33d7852ee1fa124d8c4f233",
+    "sha": "7afdb03e1cc08bbe58171da3a5e1469a48afca8cffd2020c3220eb87b35026e6",
     "took": "Per-tool auth-isolation pattern (each sandboxed binary gets only its own credentials, never the full env); the 'one-command auth' UX shape; the idea of treating credential scoping as a first-class concern of the sandbox boundary rather than a deployment afterthought. Applied at per-call granularity in cocoon instead of pillbox's per-session granularity."
   },
   {
