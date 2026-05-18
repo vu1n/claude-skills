@@ -66,7 +66,7 @@ If unsure whether the decision is visual, ask the user. A grilling session that 
 4. **Update content** in the new turn file: revise placeholder sections to reflect resolved decisions, add new sub-sections as the design grows, keep anchor buttons on every annotatable element.
 5. **Append to the embedded transcript**: a new entry for turn N+1 — your previous question, the user's response (summarized), the decisions resolved, then your next question with recommended answer and alternatives.
 6. **Update the decisions sidebar** in the HTML to reflect everything in `decisions.md`.
-7. **Append a `## Turn N+1` heading to `feedback.md`** so the user has a fresh section to write under. Single-line mutation; that's the contract between us and the file.
+7. **Append a `## Turn N+1` heading to `feedback.md`** so the user has a fresh section to write under (see "feedback.md format" below).
 8. **Tell the user**: "Open `turn-(N+1).html` and reply."
 
 ### Ending

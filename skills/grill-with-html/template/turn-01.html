@@ -6,9 +6,6 @@
     <title>Design · turn 01</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-      [data-grill-anchor] {
-        font-feature-settings: "tnum";
-      }
       [data-grill-anchor].copied {
         color: rgb(22, 163, 74);
       }
@@ -127,26 +124,17 @@
             const ref = "> @" + btn.dataset.grillAnchor + ": ";
             try {
               await navigator.clipboard.writeText(ref);
-              const original = btn.textContent;
-              btn.textContent = "copied";
-              btn.classList.add("copied");
-              setTimeout(function () {
-                btn.textContent = original;
-                btn.classList.remove("copied");
-              }, 1200);
             } catch (e) {
-              const range = document.createRange();
-              const node = document.createTextNode(ref);
-              document.body.appendChild(node);
-              range.selectNode(node);
-              window.getSelection().removeAllRanges();
-              window.getSelection().addRange(range);
-              try {
-                document.execCommand("copy");
-              } catch (_) {}
-              window.getSelection().removeAllRanges();
-              document.body.removeChild(node);
+              console.warn("clipboard write failed:", e);
+              return;
             }
+            const original = btn.textContent;
+            btn.textContent = "copied";
+            btn.classList.add("copied");
+            setTimeout(function () {
+              btn.textContent = original;
+              btn.classList.remove("copied");
+            }, 1200);
           });
         });
       })();
