@@ -19,6 +19,7 @@ cp -r skills/grill-with-lavish ~/.claude/skills/
 ## Skills
 
 - **`grill-with-lavish`** — Interview the user one question at a time about a UI/UX or design plan, with each resolved decision visualized live in a Lavish HTML artifact and recorded as an atomic claim. Composes the grill-me interview methodology, grill-with-docs ADR discipline, the facts atomic-claim lifecycle, and Lavish Editor as the surface. See [`skills/grill-with-lavish/SKILL.md`](skills/grill-with-lavish/SKILL.md).
+- **`cocoon`** — MCP facade over the [printing-press](https://github.com/mvanhorn/cli-printing-press) CLI corpus: four meta-tools (`find_capability`, `describe_capability`, `call_capability`, `list_apis`) let an agent discover and call any indexed API on demand, with lazy CLI materialization and per-call sandboxed execution. Skill at [`skills/cocoon/SKILL.md`](skills/cocoon/SKILL.md), runtime at [`cocoon/`](cocoon/).
 
 ## Source tracking
 
