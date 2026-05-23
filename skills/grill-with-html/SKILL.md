@@ -1,6 +1,6 @@
 ---
 name: grill-with-html
-description: Interview the user one question at a time about a UI/UX or design plan. Each turn produces a versioned self-contained HTML artifact; resolved decisions accumulate in a sidecar markdown file. Use when the user wants to stress-test a visual design (UI flow, layout, copy, state machine, navigation) and seeing the thing being decided matters. For pure-text decisions (terminology, domain modeling, glossary work), pick a text-only grilling approach instead.
+description: Interview the user one question at a time about a UI/UX or design plan. Each turn produces a versioned self-contained HTML artifact; the chat lives in a single sibling markdown file the agent and an optional local server both write to. Use when the user wants to stress-test a visual design (UI flow, layout, copy, state machine, navigation) and seeing the thing being decided matters. For pure-text decisions (terminology, domain modeling, glossary work), pick a text-only grilling approach instead.
 ---
 
 <what-to-do>
@@ -11,29 +11,34 @@ Ask questions one at a time, waiting for feedback on each before continuing.
 
 If a question can be answered by exploring the codebase, explore it instead.
 
-Each turn produces a new versioned HTML artifact (`turn-NN.html`). The user opens the latest, reads your question from the embedded transcript, and replies — either directly in the terminal for simple answers, or in a sidecar `feedback.md` file when they want to write richer notes referencing specific parts of the artifact.
+Each turn produces a new versioned HTML artifact (`turn-NN.html`). The user opens the latest in their browser. Conversation lives in a sidecar `chat.md`. With the optional `grill-server.py` running, the in-page composer posts directly to `chat.md` and the conversation view updates live; without the server, the composer falls back to copy-to-clipboard and the user pastes into `chat.md` themselves.
 
 </what-to-do>
 
 <supporting-info>
 
-## The surface: per-turn HTML + sidecar markdown
+## The surface: HTML files + optional local server
 
-There is no daemon, no install, no dependency. The artifact is a single self-contained HTML file the user opens with their default browser. Tailwind ships via CDN in the file itself; no build step. Versioning is per-turn: each round of grilling produces a new `turn-NN.html` snapshot, so the design's evolution is the diff between turns.
+Two pieces:
 
-Per-design directory layout:
+1. **`docs/design/<slug>/turn-NN.html`** — versioned per-turn snapshots of the design surface. Each is self-contained: Tailwind via CDN, no build step, no JS framework. Includes an in-page conversation view, a composer (textarea + Send button), N decision-branch sections with anchor `#` buttons, and a decisions sidebar.
+2. **`skills/grill-with-html/server/grill-server.py`** — single-file Python stdlib server that ships with the skill. ~100 lines, zero deps. Run with `python3 server/grill-server.py <design-dir>` to enable live mode. Listens on `127.0.0.1:4388`. Endpoints: `GET /healthz`, `GET /chat.md`, `GET /decisions.md`, `POST /reply`, static file serving from the design dir.
 
-```
-docs/design/<slug>/
-  turn-01.html        # initial scaffold + first question (embedded transcript)
-  turn-02.html        # next round; content updated, decisions added, transcript grown
-  turn-03.html
-  ...
-  feedback.md         # single file, append-only; user writes per-turn responses under "## Turn N" headings
-  decisions.md        # agent appends resolved decisions (lifecycle-tagged)
-```
+**Live mode (server running):**
+- User opens `http://127.0.0.1:4388/turn-NN.html`
+- Browser detects server via `/healthz`, switches Send to POST mode
+- User types in composer, hits Send → POST `/reply` → server appends to `chat.md`
+- Conversation view polls `/chat.md` every 2s and re-renders
+- Agent reads `chat.md` on next turn
 
-The user opens the highest-numbered `turn-NN.html` to see the current state. Each turn file is a complete snapshot: embedded transcript covers turns 1..N, decisions sidebar shows everything resolved through N, content sections reflect the current state of the design.
+**Static mode (file:// open from disk):**
+- User opens `file:///path/to/turn-NN.html`
+- Browser detects no server, shows "file:// mode"
+- Conversation view renders the baked-in chat snapshot (whatever was current when the agent generated the turn file)
+- Send button copies the reply to clipboard; user pastes into `chat.md` under the current turn's `**User**:` block
+- Agent reads `chat.md` on next turn
+
+Both modes converge on the same `chat.md`. Kill the server, switch to file://, switch back — nothing is lost.
 
 ## When to use this skill
 
@@ -46,123 +51,121 @@ Do NOT use for:
 
 If unsure whether the decision is visual, ask the user. A grilling session that doesn't earn its artifact is more friction than value.
 
+## Per-design directory layout
+
+```
+docs/design/<slug>/
+  turn-01.html        # initial scaffold + first question
+  turn-02.html        # next round; design surface updated, decisions sidebar grown
+  ...
+  chat.md             # canonical chat history (agent + user, every turn)
+  decisions.md        # resolved decisions, lifecycle-tagged
+```
+
 ## The loop
 
 ### Turn 1 (start)
 
 1. **Pick a slug** for the design (e.g. `checkout-flow`). Create `docs/design/<slug>/`.
-2. **Copy the template** at `template/turn-01.html` from this skill directory to `docs/design/<slug>/turn-01.html`.
-3. **Fill the scaffold**: rename the placeholder sections to match the design's actual decision branches (e.g. "Entry point", "Listing shape", "Per-row actions", "Empty state"). Each section heading must keep its anchor button (the `#` next to the heading) — these are the precision references the user will use in feedback.
-4. **Write the first question** into the embedded transcript section at the bottom of the HTML, with your recommended answer and 1-2 sentences of reasoning. Name the alternatives you considered.
-5. **Create `feedback.md`** with an initial `# Feedback` heading and a `## Turn 1` heading underneath. The user writes under `## Turn 1`.
-6. **Create `decisions.md`** with an initial `# Decisions` heading. Empty list to start.
-7. **Tell the user**: "Open `docs/design/<slug>/turn-01.html` and reply in the terminal, or write notes under `## Turn 1` in `feedback.md` if precision matters."
+2. **Copy the template** at `skills/grill-with-html/template/turn-01.html` into `docs/design/<slug>/turn-01.html`.
+3. **Fill the scaffold**: replace placeholder sections with the design's actual decision branches (e.g. "Entry point", "Listing shape", "Per-row actions", "Empty state"). Keep the anchor `#` button on every section so the user can reference it from the composer.
+4. **Create `chat.md`** with `# Chat`, then `## Turn 1`, then `**Agent**` block (your question, recommended answer, alternatives), then `**User**:` line (empty — user will fill).
+5. **Create `decisions.md`** with `# Decisions`.
+6. **Tell the user how to open the session.** Two options:
+   - **Server mode** (recommended for active sessions): `python3 skills/grill-with-html/server/grill-server.py docs/design/<slug>/` then open `http://127.0.0.1:4388/turn-01.html`.
+   - **File mode** (for read-only review or quick turns): just `open docs/design/<slug>/turn-01.html`.
 
 ### Subsequent turns (N+1)
 
-1. **Read `feedback.md`**: process the section under the most recent `## Turn` heading. Reconcile with anything the user said directly in the terminal.
-2. **Resolve decisions**: each clear answer becomes a decision. Append to `decisions.md` (see "decisions.md format" below). Most start as `@draft`; promote to `@spec` only when they're precise enough to implement without further questions.
-3. **Copy** `turn-N.html` to `turn-(N+1).html`.
-4. **Update content** in the new turn file: revise placeholder sections to reflect resolved decisions, add new sub-sections as the design grows, keep anchor buttons on every annotatable element.
-5. **Append to the embedded transcript**: a new entry for turn N+1 — your previous question, the user's response (summarized), the decisions resolved, then your next question with recommended answer and alternatives.
-6. **Update the decisions sidebar** in the HTML to reflect everything in `decisions.md`.
-7. **Append a `## Turn N+1` heading to `feedback.md`** so the user has a fresh section to write under (see "feedback.md format" below).
-8. **Tell the user**: "Open `turn-(N+1).html` and reply."
+1. **Read `chat.md`**: process the user's reply under the latest `## Turn N` heading's `**User**:` block.
+2. **Resolve decisions**: each clear answer becomes a decision. Append to `decisions.md` (see "decisions.md format" below). Most start as `[draft]`; promote to `[spec]` only when precise enough to implement without further questions.
+3. **Copy `turn-N.html` to `turn-(N+1).html`.**
+4. **Update content** in the new turn file: revise sections to reflect resolved decisions, add new sub-sections as the design grows, keep anchor buttons on every annotatable element. Update the decisions sidebar to mirror `decisions.md`.
+5. **Update `<script id="grill-chat-snapshot">` in the new turn file** to a snapshot of `chat.md`'s current content (so file:// readers see the latest conversation if they open the file without the server running).
+6. **Append to `chat.md`**: new `## Turn N+1` heading, `**Agent**` block with your next question, `**User**:` line for the reply.
+7. **Tell the user**: "Open `turn-(N+1).html` and reply" — if server is running, the open page will auto-pick up the new question on its next poll; if not, the user opens the new file from disk.
 
 ### Ending
 
-When the user signals they're done (no more questions to resolve, or asks you to stop):
-- Make a final pass on `decisions.md`: any `@draft` that's actually precise enough should be promoted to `@spec`.
-- Optionally summarize the session in the final turn's embedded transcript.
-- Suggest whether any decisions earn ADRs (see "ADRs — sparingly" below).
-- The design is now archived as a series of turn files plus the two markdown sidecars. Commit them.
+When the user signals done:
+- Final pass on `decisions.md`: promote any `[draft]` that's actually precise enough to `[spec]`.
+- Optionally summarize the session in the final turn's chat or in a closing `## Resolution` section of `decisions.md`.
+- Suggest any decisions that earn ADRs (see below).
+- Commit the whole design directory; git diff between turn files shows the design's evolution.
 
-## Artifact conventions
+## Server: starting, stopping, conventions
 
-The `template/turn-01.html` file in this skill directory is the starting point. Copy it for each new design and edit. Key conventions:
+- **Start**: `python3 path/to/skills/grill-with-html/server/grill-server.py <design-dir>`. Default port `4388` (override with `--port`).
+- **Stop**: Ctrl-C. No background process, no PID files, no global state.
+- **Multi-session**: one server per design directory. Different sessions = different ports.
+- **What it touches**: only the design directory (writes `chat.md`, reads `chat.md`/`decisions.md`/`turn-NN.html`). Nothing outside.
+- **Restart-safe**: server has no in-memory state beyond active HTTP connections. Kill and restart freely.
 
-- **Tailwind v3 Play CDN** is loaded via `<script src="https://cdn.tailwindcss.com">` in the head. Single file, no build, works offline if the CDN has been cached. Use Tailwind utility classes freely.
-- **Semantic HTML**: real `<section>`, `<article>`, `<nav>`, `<aside>`, `<header>` tags. Anchor buttons rely on heading structure.
-- **Anchor buttons** (`data-grill-anchor="<id>"`) sit next to every annotatable region's heading. The accompanying inline JS copies `> @<id>: ` to the clipboard on click — the user pastes that into `feedback.md` and writes their comment after.
-- **Embedded transcript** lives in a `<section id="grill-transcript">` at the bottom of the file. Each turn appends a `<details>` block: question, recommended answer, alternatives, user response, decisions resolved. The transcript IS the design record.
-- **Decisions sidebar** lives in `<aside data-grill="decisions">`. Mirrors `decisions.md` content; updated each turn so a reader looking at any turn file can see what's been resolved up to that point.
-- **No implementation code** in the artifact unless it's the subject of the design. No DB schemas, no server code, no ORM queries.
-- **No JS frameworks**. The only JS in the artifact is the ~20-line anchor-copy snippet. The artifact must remain openable in any browser years from now without setup.
+If the user has the server running, prefer that path — composer Send works without copy-paste. If they're opening from disk, the file:// fallback works fine; just slower per-turn because of the manual paste step.
 
-## Anchor references
+## `chat.md` format
 
-In `feedback.md` the user references parts of the artifact via `> @<anchor-id>:` markdown blockquotes:
+Each turn block:
 
 ```md
-## Turn 2
+## Turn N
 
-> @listing: too dense with metadata, drop the relative timestamp from the row
-> @empty-state-cta: this should send the user to "open existing" not "create new"
+**Agent** · `@<branch-name>` · <one-line question summary>
 
-The header looks fine. One thing I want to push back on: the entry point
-recommendation feels off — see @listing comment.
+(your question content, recommended answer, alternatives)
+
+**User**:
+
+(empty, or the user's reply)
+
+---
 ```
 
-When you read `feedback.md`, parse the `> @<anchor>:` lines as targeted feedback on specific parts of the artifact. Free-form prose between them is general session feedback.
+Key conventions:
+- Each turn starts with `## Turn N` (the H2 heading is the turn boundary the server uses to find the latest user block).
+- `**Agent**` line carries the active branch as `` `@<branch>` `` and a one-line summary for the conversation-view rendering.
+- `**User**:` is the exact marker the server looks for when appending replies. Don't reword it.
+- `---` separator between turns. The server uses this as the user-block-end marker.
 
-When you scaffold a new section in the artifact, give it a stable `id` and an anchor button. Don't rename ids between turns — the user's prior feedback references them.
-
-## `feedback.md` format
-
-Single file, append-only, lives at `docs/design/<slug>/feedback.md`. Starts with:
-
-```md
-# Feedback
-
-## Turn 1
-
-(user writes here)
-```
-
-You add a fresh `## Turn N+1` heading after generating `turn-(N+1).html`. That's the only mutation you make to this file — never edit the user's content. Each turn, read the section under the most recent `## Turn` heading; everything above it has already been processed.
-
-If the user typed their response directly in the terminal instead of writing in `feedback.md`, the section under the latest `## Turn` heading may be empty. That's fine — process the terminal response.
+The conversation view in `turn-NN.html` parses this format and renders agent/user blocks. If you change the format, update the parser in `template/turn-01.html` too.
 
 ## `decisions.md` format
 
-Append-only log of resolved decisions, lifecycle-tagged. Lives at `docs/design/<slug>/decisions.md`.
+Append-only log of resolved decisions, grouped by branch.
 
 ```md
 # Decisions
 
-## entry-point
-- [spec] `/sessions` route on the lavish server, reachable independent of any open artifact
-- [draft] chrome page links to it from a small "all sessions" affordance in the header
+## @entry-point
+- [spec] `/sessions` route on the design server, reachable independent of any open artifact
+- [draft] chrome header links to it from a small "all sessions" affordance
 
-## listing-shape
+## @listing-shape
 - [draft] card-per-session, sorted by last activity descending
-- [draft] each card shows: canonical path, last-activity timestamp, count of queued prompts
 ```
 
 Lifecycle tags:
 - `[draft]` — rough idea, not yet precise enough to build
-- `[spec]` — precise, an implementer could pick this up without further questions
-- `[implemented]` — code-backed (you won't write these during grilling; the implementation step does)
+- `[spec]` — precise; an implementer could pick this up without further questions
+- `[implemented]` — code-backed (you won't write these during grilling)
 
-Don't promote `[draft]` to `[spec]` casually. If the user's answer left wiggle room, it's still `[draft]`.
+Don't promote `[draft]` to `[spec]` casually. If the user's answer left wiggle room, it's still `[draft]`. And hold `[draft]` longer than feels comfortable — the meta-grill that designed this skill marked `@surface` as `[spec]` prematurely after Turn 1, then had to demote it in Turn 4 once real UX friction surfaced.
 
 ## CONTEXT.md compatibility
 
-If the project already has a `CONTEXT.md` or `CONTEXT-MAP.md`, do not duplicate decisions there. If a sibling skill expects one and none exists, create a minimal stub that points to the design directory:
+If the project already has a `CONTEXT.md` or `CONTEXT-MAP.md`, do not duplicate decisions there. If a sibling skill expects one and none exists, create a minimal stub pointing to the design directory:
 
 ```md
 # Context
 
 > Canonical design for <slug> lives in [docs/design/<slug>/](docs/design/<slug>/).
-> Latest snapshot is the highest-numbered `turn-NN.html`. Resolved decisions
-> are in `decisions.md`; per-turn feedback is in `feedback.md`.
+> Latest snapshot is the highest-numbered `turn-NN.html`. Chat history is `chat.md`;
+> resolved decisions are in `decisions.md`.
 
 ## Glossary
 
 (intentionally minimal — see the artifact)
 ```
-
-`CONTEXT.md` is a glossary. Don't put implementation details, design decisions, or rationale in it.
 
 ## ADRs — sparingly
 
@@ -170,21 +173,22 @@ Only suggest an ADR when all three are true:
 
 1. **Hard to reverse** — changing your mind later has meaningful cost.
 2. **Surprising without context** — a future reader will wonder "why did they do it this way?"
-3. **Real trade-off** — there were genuine alternatives and one was chosen for specific reasons.
+3. **Real trade-off** — genuine alternatives existed and one was chosen for specific reasons.
 
-If any is missing, skip the ADR. The decision still lives in `decisions.md` and the turn transcripts — it just doesn't need its own document.
+If any is missing, skip the ADR. The decision lives in `decisions.md` and the chat transcript; it doesn't need a separate document.
 
-When you do create an ADR, place it at `docs/adr/<NNNN>-<slug>.md` and link back to the design directory.
+When you do create an ADR, place it at `docs/adr/<NNNN>-<slug>.md` and link to the design directory.
 
 ## Sharpening discipline
 
 During the grill:
 
-- **Challenge fuzzy language.** If the user says "the panel" and two panels exist in the artifact, ask which (use anchor names). If they use a term that could mean two things, propose a canonical name and confirm.
-- **Stress-test with concrete scenarios.** "What if the viewport is 320px wide?" "What if there are 50 sessions in the list?" "What if a session is from a deleted file?" Force precision.
-- **Cross-reference with code.** If the user states how something currently works, check the code. If their model and the code disagree, surface it.
-- **Recommend an answer per question.** Don't ask open-ended "what should we do?" — propose an answer with a brief reason, name alternatives, then let the user accept, modify, or reject.
-- **Resolve dependencies in order.** Don't ask about leaf decisions before the parent shape is settled. Entry point first, then listing shape, then per-row affordances — not the other way around.
+- **Challenge fuzzy language.** If the user says "the panel" and two panels exist, ask which by anchor name. Propose canonical names for overloaded terms.
+- **Stress-test with concrete scenarios.** "What if the viewport is 320px wide?" "What if there are 50 sessions?" Force precision.
+- **Cross-reference with code.** If the user states how something currently works, check the code. Surface contradictions.
+- **Recommend an answer per question.** Don't ask open-ended "what should we do?" — propose with reasoning, name alternatives, let the user accept/modify/reject.
+- **Resolve dependencies in order.** Entry point first, then listing shape, then per-row affordances — not the other way around.
+- **Hold `[draft]` longer than feels comfortable.** The shape of a decision often isn't clear until the user has lived with it for a turn or two.
 
 </supporting-info>
 
@@ -194,4 +198,4 @@ This skill absorbed ideas from upstream skills/projects rather than depending on
 
 - [`grill-me`](https://github.com/mattpocock/skills/tree/main/skills/productivity/grill-me) — one-question-at-a-time interview methodology.
 - [`grill-with-docs`](https://github.com/mattpocock/skills/tree/main/skills/engineering/grill-with-docs) — ADR three-criteria rule, CONTEXT.md compatibility shape, sharpening discipline.
-- [`html-effectiveness`](https://github.com/ThariqS/html-effectiveness) — self-contained HTML artifacts with copy-export feedback (anchor-into-clipboard pattern adapted from this).
+- [`html-effectiveness`](https://github.com/ThariqS/html-effectiveness) — self-contained HTML artifacts as design surfaces; copy-export feedback pattern.

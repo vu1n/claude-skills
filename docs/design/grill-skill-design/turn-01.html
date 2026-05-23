@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>grill-with-html · design · turn 01</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      [data-grill-anchor].copied {
+        color: rgb(22, 163, 74);
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
+    <div class="mx-auto grid max-w-6xl grid-cols-1 gap-6 p-6 lg:grid-cols-[1fr_300px]">
+      <main class="space-y-6">
+        <header>
+          <p class="text-xs uppercase tracking-widest text-slate-500">
+            design · turn 01
+          </p>
+          <h1 class="mt-1 text-2xl font-semibold">
+            <span data-grill-title>grill-with-html: skill design</span>
+          </h1>
+          <p class="mt-2 max-w-prose text-sm text-slate-600">
+            Meta-grilling the design decisions behind the
+            <code class="text-slate-800">grill-with-html</code> skill itself. The artifact is the test:
+            if the skill produces sensible questions about its own shape, the methodology is sound.
+          </p>
+          <p class="mt-3 rounded border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500">
+            Click the <code class="text-slate-700">#</code> next to any section heading to copy an anchor reference (e.g. <code class="text-slate-700">&gt; @surface:</code>) to your clipboard. Paste it into <code class="text-slate-700">feedback.md</code> under <code class="text-slate-700">## Turn 1</code> and write your comment after.
+          </p>
+        </header>
+
+        <section id="surface" class="rounded border border-slate-200 bg-white p-5">
+          <h2 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
+            <span>Surface</span>
+            <button
+              type="button"
+              data-grill-anchor="surface"
+              aria-label="Copy anchor reference for Surface"
+              class="rounded px-1 text-xs font-normal text-slate-400 hover:text-slate-700"
+            >
+              #
+            </button>
+          </h2>
+          <p class="mt-2 text-sm text-slate-600">
+            What does the agent grill <em>against</em>? Daemon-backed (chat panel, live reload, click-anywhere annotation) vs. a self-contained HTML file the user opens in any browser. Foundational choice — everything downstream depends on this.
+          </p>
+        </section>
+
+        <section id="versioning" class="rounded border border-slate-200 bg-white p-5">
+          <h2 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
+            <span>Versioning</span>
+            <button
+              type="button"
+              data-grill-anchor="versioning"
+              aria-label="Copy anchor reference for Versioning"
+              class="rounded px-1 text-xs font-normal text-slate-400 hover:text-slate-700"
+            >
+              #
+            </button>
+          </h2>
+          <p class="mt-2 text-sm text-slate-600">
+            One mutating artifact updated in place vs. a new <code class="text-slate-800">turn-NN.html</code> snapshot per turn. Drives diff-ability, archive value, and disk cost.
+          </p>
+        </section>
+
+        <section id="feedback-channel" class="rounded border border-slate-200 bg-white p-5">
+          <h2 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
+            <span>Feedback channel</span>
+            <button
+              type="button"
+              data-grill-anchor="feedback-channel"
+              aria-label="Copy anchor reference for Feedback channel"
+              class="rounded px-1 text-xs font-normal text-slate-400 hover:text-slate-700"
+            >
+              #
+            </button>
+          </h2>
+          <p class="mt-2 text-sm text-slate-600">
+            How does the user reply? Terminal-only, in-page composer with a copy button, sidecar markdown file, or some combination. Determines where notes persist and how much page-internal JS the artifact needs.
+          </p>
+        </section>
+
+        <section id="annotation-precision" class="rounded border border-slate-200 bg-white p-5">
+          <h2 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
+            <span>Annotation precision</span>
+            <button
+              type="button"
+              data-grill-anchor="annotation-precision"
+              aria-label="Copy anchor reference for Annotation precision"
+              class="rounded px-1 text-xs font-normal text-slate-400 hover:text-slate-700"
+            >
+              #
+            </button>
+          </h2>
+          <p class="mt-2 text-sm text-slate-600">
+            How precisely can the user point at <em>this</em> vs. <em>that</em>? Element-pickers with DOM hit-detection, agent-declared anchor refs, or no annotation at all (free-form prose). Trades JS complexity against precision.
+          </p>
+        </section>
+
+        <section id="decision-recording" class="rounded border border-slate-200 bg-white p-5">
+          <h2 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
+            <span>Decision recording</span>
+            <button
+              type="button"
+              data-grill-anchor="decision-recording"
+              aria-label="Copy anchor reference for Decision recording"
+              class="rounded px-1 text-xs font-normal text-slate-400 hover:text-slate-700"
+            >
+              #
+            </button>
+          </h2>
+          <p class="mt-2 text-sm text-slate-600">
+            Where do resolved decisions land and what shape do they take? Inline in artifact, sidecar markdown, structured format (<code class="text-slate-800">.facts</code>-style), or ADRs. Lifecycle tags, ecosystem compatibility stubs.
+          </p>
+        </section>
+
+        <section id="grill-transcript" class="rounded border border-slate-200 bg-white p-5">
+          <h2 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
+            <span>Transcript</span>
+            <button
+              type="button"
+              data-grill-anchor="grill-transcript"
+              aria-label="Copy anchor reference for Transcript"
+              class="rounded px-1 text-xs font-normal text-slate-400 hover:text-slate-700"
+            >
+              #
+            </button>
+          </h2>
+
+          <details open class="mt-3 rounded border border-slate-100 bg-slate-50 p-3">
+            <summary class="cursor-pointer text-sm font-medium text-slate-700">
+              Turn 1 · @surface — daemon-backed vs. self-contained file?
+            </summary>
+            <div class="mt-3 space-y-3 text-sm text-slate-700">
+              <p>
+                <strong>Question.</strong> What does the agent grill <em>against</em> — a daemon-backed surface (chat panel + live reload + click-anywhere annotation, hosted by a local server) or a self-contained HTML file the user opens in any browser?
+              </p>
+              <p>
+                <strong>Recommended: self-contained file.</strong> Two things drive this. First, archivability — a single HTML file you can commit, share via email, open in 2030 with no setup is a better design record than a transient chrome session that disappears when the daemon dies. Second, trust — daemons that auto-install global hooks (we just lived through this with lavish-axi) violate user expectations and get tools uninstalled. The self-contained file pays for these wins with copy-paste friction on annotations; we'll resolve that in <code>@annotation-precision</code> and <code>@feedback-channel</code>.
+              </p>
+              <p>
+                <strong>Alternatives considered.</strong>
+              </p>
+              <ul class="list-disc space-y-1 pl-5">
+                <li>
+                  <em>Daemon-backed</em> (lavish-axi-style): realtime push, integrated chat, click-anywhere precision. Killed by dependency burden — install steps, hook lifecycle, version coupling between CLI and host.
+                </li>
+                <li>
+                  <em>Hybrid</em>: self-contained file, but with an optional daemon that augments it when running. Too much surface area; ends up shipping the daemon's complexity to anyone who wants the "good" version. Skipped.
+                </li>
+              </ul>
+              <p class="text-slate-500">
+                Resolving this question first because every other branch (versioning shape, feedback channel, annotation mechanism) is shaped by whether we have a runtime to lean on.
+              </p>
+            </div>
+          </details>
+        </section>
+      </main>
+
+      <aside data-grill="decisions" class="rounded border border-slate-200 bg-white p-5">
+        <h2 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
+          <span>Decisions</span>
+          <button
+            type="button"
+            data-grill-anchor="decisions"
+            aria-label="Copy anchor reference for Decisions"
+            class="rounded px-1 text-xs font-normal text-slate-400 hover:text-slate-700"
+          >
+            #
+          </button>
+        </h2>
+        <p class="mt-2 text-xs text-slate-500">
+          Resolved decisions accumulate here as the grill proceeds.
+        </p>
+        <ol class="mt-3 space-y-2 text-sm text-slate-700">
+          <li class="italic text-slate-400">none yet</li>
+        </ol>
+      </aside>
+    </div>
+
+    <script>
+      (function () {
+        const buttons = document.querySelectorAll("[data-grill-anchor]");
+        buttons.forEach(function (btn) {
+          btn.addEventListener("click", async function () {
+            const ref = "> @" + btn.dataset.grillAnchor + ": ";
+            try {
+              await navigator.clipboard.writeText(ref);
+            } catch (e) {
+              console.warn("clipboard write failed:", e);
+              return;
+            }
+            const original = btn.textContent;
+            btn.textContent = "copied";
+            btn.classList.add("copied");
+            setTimeout(function () {
+              btn.textContent = original;
+              btn.classList.remove("copied");
+            }, 1200);
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>

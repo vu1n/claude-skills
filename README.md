@@ -18,7 +18,7 @@ cp -r skills/grill-with-html ~/.claude/skills/
 
 ## Skills
 
-- **`grill-with-html`** — Interview the user one question at a time about a UI/UX or design plan. Each turn produces a versioned self-contained HTML artifact; resolved decisions accumulate in a sidecar markdown file. No daemon, no install, no dependencies — the artifact is a single HTML file the user opens in any browser, and feedback flows through anchor-into-clipboard references and a sidecar `feedback.md`. Composes the grill-me interview methodology, grill-with-docs ADR discipline, and the html-effectiveness copy-export pattern. See [`skills/grill-with-html/SKILL.md`](skills/grill-with-html/SKILL.md).
+- **`grill-with-html`** — Interview the user one question at a time about a UI/UX or design plan. Each turn produces a versioned self-contained HTML artifact (`turn-NN.html`); chat history lives in a single sibling `chat.md`. Optional one-file Python server (`grill-server.py`, stdlib only, no install) gives the in-page composer live bidirectional chat; without the server, file:// mode still works via copy-to-clipboard fallback. Composes the grill-me interview methodology, grill-with-docs ADR discipline, and the html-effectiveness self-contained-artifact pattern. See [`skills/grill-with-html/SKILL.md`](skills/grill-with-html/SKILL.md).
 
 ## Using `grill-with-html`
 
@@ -26,14 +26,23 @@ After installing the skill, trigger it by asking your agent to grill you on a vi
 
 > Grill me on the session-resume UI I'm thinking about.
 
-The agent picks a slug, scaffolds `docs/design/<slug>/turn-01.html` from the skill's `template/`, asks its first question (with a recommended answer and named alternatives), and the loop begins.
+The agent picks a slug, scaffolds `docs/design/<slug>/turn-01.html` from the skill's `template/`, writes the first question into `chat.md`, and the loop begins.
 
-Replying:
+Two ways to open the session:
 
-- **Simple answers** — type your response in the terminal. The agent processes and produces `turn-02.html`.
-- **Precise feedback** — open `docs/design/<slug>/turn-NN.html` in any browser. Click the `#` next to any section heading to copy a `> @<anchor>:` reference to your clipboard, paste into the sibling `feedback.md` under the latest `## Turn N` heading, and write your comment after. The agent reads `feedback.md` on the next turn.
+- **Live mode** (recommended for active grilling):
+  ```sh
+  python3 skills/grill-with-html/server/grill-server.py docs/design/<slug>/
+  # then open http://127.0.0.1:4388/turn-01.html
+  ```
+  Composer Send posts directly; conversation view polls `chat.md` every 2s; no copy/paste round-trip.
+- **File mode** (read-only review, or if you don't want to start the server):
+  ```sh
+  open docs/design/<slug>/turn-01.html
+  ```
+  Composer Send falls back to copy-to-clipboard; you paste into `chat.md` under the current turn's `**User**:` block, then tell the agent.
 
-Each turn produces a new versioned snapshot. Open the highest-numbered `turn-NN.html` for the latest design state and the embedded transcript. End the session by telling the agent you're done — resolved decisions live in `decisions.md`, the design's evolution lives in the diffs between turn files. Commit the whole directory; the design process is in git.
+Each turn produces a new versioned snapshot. Open the highest-numbered `turn-NN.html` for the latest design state. Click `#` next to any section heading to insert an anchor reference (`> @<id>:`) into the composer for precision when referencing parts of the artifact. End the session by telling the agent you're done — resolved decisions live in `decisions.md`, chat history in `chat.md`, the design's evolution in the diffs between turn files. Commit the whole directory; the design process is in git.
 
 ## Spun off
 

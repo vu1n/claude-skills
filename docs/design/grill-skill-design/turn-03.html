@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>grill-with-html · design · turn 03</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      [data-grill-anchor].copied {
+        color: rgb(22, 163, 74);
+      }
+      [data-grill-send].sent {
+        background-color: rgb(22, 163, 74);
+        color: white;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
+    <div class="mx-auto grid max-w-6xl grid-cols-1 gap-6 p-6 lg:grid-cols-[1fr_300px]">
+      <main class="space-y-6">
+        <header>
+          <p class="text-xs uppercase tracking-widest text-slate-500">
+            design · turn 03
+          </p>
+          <h1 class="mt-1 text-2xl font-semibold">
+            <span data-grill-title>grill-with-html: skill design</span>
+          </h1>
+          <p class="mt-2 max-w-prose text-sm text-slate-600">
+            Canonical chat lives in <code class="text-slate-800">chat.md</code>; this section renders it. The composer below copies your reply to the clipboard — paste into <code class="text-slate-800">chat.md</code> under the Turn 3 <code class="text-slate-800">**User**:</code> line.
+          </p>
+        </header>
+
+        <section id="conversation" class="rounded border border-slate-200 bg-white">
+          <header class="flex items-center justify-between border-b border-slate-200 px-5 py-3">
+            <h2 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
+              <span>Conversation</span>
+              <button
+                type="button"
+                data-grill-anchor="conversation"
+                aria-label="Copy anchor reference for Conversation"
+                class="rounded px-1 text-xs font-normal text-slate-400 hover:text-slate-700"
+              >
+                #
+              </button>
+            </h2>
+            <p class="text-xs text-slate-500">
+              Mirrors <code>chat.md</code>. Click <code>#</code> to insert anchor refs in the composer.
+            </p>
+          </header>
+
+          <ol class="divide-y divide-slate-100">
+            <li class="space-y-2 px-5 py-4">
+              <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Turn 1 · <code class="font-normal text-slate-600">@surface</code>
+              </p>
+              <details class="rounded bg-slate-50 px-4 py-2 text-sm text-slate-700">
+                <summary class="cursor-pointer font-medium">Agent — daemon-backed vs. self-contained file?</summary>
+                <div class="mt-2 space-y-2">
+                  <p><strong>Recommended: self-contained file.</strong> Archivability and trust over realtime polish.</p>
+                </div>
+              </details>
+              <div class="ml-8 rounded bg-blue-50 px-4 py-2 text-sm text-slate-700">
+                <p class="text-xs font-semibold uppercase tracking-wide text-blue-600">User</p>
+                <p class="mt-1">i think chat should be with the html surface so users don't have to click back and forth.</p>
+              </div>
+            </li>
+
+            <li class="space-y-2 px-5 py-4">
+              <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Turn 2 · <code class="font-normal text-slate-600">@feedback-channel</code>
+              </p>
+              <details class="rounded bg-slate-50 px-4 py-2 text-sm text-slate-700">
+                <summary class="cursor-pointer font-medium">Agent — how does the in-page composer transmit the reply?</summary>
+                <div class="mt-2 space-y-2">
+                  <p><strong>Recommended: copy-to-clipboard now, FS Access API later if friction shows.</strong></p>
+                </div>
+              </details>
+              <div class="ml-8 rounded bg-blue-50 px-4 py-2 text-sm text-slate-700">
+                <p class="text-xs font-semibold uppercase tracking-wide text-blue-600">User</p>
+                <p class="mt-1">The plan was to have the HTML files act as versions through each turn, and a single sibling markdown file that stored the chats. This way we have a history.</p>
+              </div>
+            </li>
+
+            <li class="space-y-2 px-5 py-4">
+              <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Turn 3 · <code class="font-normal text-slate-600">@versioning</code>
+              </p>
+              <article class="rounded bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Agent</p>
+                <div class="mt-2 space-y-3">
+                  <p><strong>Question.</strong> Per-turn <code>turn-NN.html</code> snapshots vs. a single mutating <code>design.html</code>?</p>
+                  <p>
+                    <strong>Recommended: per-turn snapshots.</strong> Three reasons:
+                  </p>
+                  <ol class="list-decimal space-y-1 pl-5">
+                    <li><strong>History without ceremony.</strong> <code>git diff turn-03.html turn-04.html</code> shows exactly what one round resolved. No checkout dance.</li>
+                    <li><strong>Reading any turn is complete.</strong> Each file embeds the conversation up to that point. Opening turn-03.html shows design state + conversation through turn 3.</li>
+                    <li><strong>Composes cleanly with chat.md.</strong> chat.md is canonical; turn-NN.html is the rendered visual snapshot. Independent files, different jobs.</li>
+                  </ol>
+                  <p><strong>Cost.</strong> File count grows with turns. A 12-turn design has 12 HTML files. Acceptable — each is small (~10KB), Tailwind via CDN shares fetch cache.</p>
+                  <p><strong>Alternatives considered.</strong></p>
+                  <ul class="list-disc space-y-1 pl-5">
+                    <li><em>Single mutating HTML</em>: one <code>design.html</code> rewritten in place. Pros: no proliferation. Cons: lose per-turn diff-ability; no "design at turn 3" without git-checkout.</li>
+                    <li><em>HTML + per-turn patches</em>: too much ceremony, defeats single-file archivability.</li>
+                  </ul>
+                </div>
+              </article>
+              <article data-grill-composer class="ml-8 rounded border border-blue-200 bg-white">
+                <header class="border-b border-slate-100 px-4 py-2">
+                  <p class="text-xs font-semibold uppercase tracking-wide text-blue-600">
+                    Turn 3 · you · composer
+                  </p>
+                </header>
+                <textarea
+                  rows="6"
+                  placeholder="Type your reply here. Click # next to any section to insert an anchor reference. Send copies to clipboard — paste into chat.md under Turn 3 **User**:."
+                  class="block w-full resize-y border-0 bg-transparent px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
+                ></textarea>
+                <footer class="flex items-center justify-between gap-3 border-t border-slate-100 bg-slate-50 px-4 py-2">
+                  <p class="text-xs text-slate-500">
+                    Send copies your reply. Paste into <code>chat.md</code> (or the terminal) so the agent reads it.
+                  </p>
+                  <button
+                    type="button"
+                    data-grill-send
+                    class="rounded bg-blue-600 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white hover:bg-blue-700"
+                  >
+                    Send
+                  </button>
+                </footer>
+              </article>
+            </li>
+          </ol>
+        </section>
+
+        <section id="surface" class="rounded border border-slate-200 bg-white p-5">
+          <h2 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
+            <span>Surface</span>
+            <span class="rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-semibold text-green-700">spec</span>
+            <button
+              type="button"
+              data-grill-anchor="surface"
+              aria-label="Copy anchor reference for Surface"
+              class="rounded px-1 text-xs font-normal text-slate-400 hover:text-slate-700"
+            >
+              #
+            </button>
+          </h2>
+          <p class="mt-2 text-sm text-slate-600">
+            Self-contained HTML file per turn. No daemon, no install, no global hook mutation.
+          </p>
+        </section>
+
+        <section id="versioning" class="rounded border border-slate-200 bg-white p-5">
+          <h2 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
+            <span>Versioning</span>
+            <span class="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">grilling</span>
+            <button
+              type="button"
+              data-grill-anchor="versioning"
+              aria-label="Copy anchor reference for Versioning"
+              class="rounded px-1 text-xs font-normal text-slate-400 hover:text-slate-700"
+            >
+              #
+            </button>
+          </h2>
+          <p class="mt-2 text-sm text-slate-600">
+            Open in Turn 3 — see Conversation above.
+          </p>
+        </section>
+
+        <section id="feedback-channel" class="rounded border border-slate-200 bg-white p-5">
+          <h2 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
+            <span>Feedback channel</span>
+            <span class="rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-semibold text-green-700">spec</span>
+            <button
+              type="button"
+              data-grill-anchor="feedback-channel"
+              aria-label="Copy anchor reference for Feedback channel"
+              class="rounded px-1 text-xs font-normal text-slate-400 hover:text-slate-700"
+            >
+              #
+            </button>
+          </h2>
+          <p class="mt-2 text-sm text-slate-600">
+            In-page composer (this artifact); canonical history in single sibling <code class="text-slate-800">chat.md</code>; send via copy-to-clipboard (FS Access API deferred until friction is measured).
+          </p>
+        </section>
+
+        <section id="annotation-precision" class="rounded border border-slate-200 bg-white p-5">
+          <h2 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
+            <span>Annotation precision</span>
+            <button
+              type="button"
+              data-grill-anchor="annotation-precision"
+              aria-label="Copy anchor reference for Annotation precision"
+              class="rounded px-1 text-xs font-normal text-slate-400 hover:text-slate-700"
+            >
+              #
+            </button>
+          </h2>
+          <p class="mt-2 text-sm text-slate-600">
+            Element-pickers, agent-declared anchor refs, or no annotation. Likely converges to anchor refs that insert into the composer (this turn prototypes it), but not formally grilled yet.
+          </p>
+        </section>
+
+        <section id="decision-recording" class="rounded border border-slate-200 bg-white p-5">
+          <h2 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
+            <span>Decision recording</span>
+            <button
+              type="button"
+              data-grill-anchor="decision-recording"
+              aria-label="Copy anchor reference for Decision recording"
+              class="rounded px-1 text-xs font-normal text-slate-400 hover:text-slate-700"
+            >
+              #
+            </button>
+          </h2>
+          <p class="mt-2 text-sm text-slate-600">
+            Inline in artifact, sidecar markdown, structured format, or ADRs. Lifecycle tags. Compatibility stubs. Not yet grilled.
+          </p>
+        </section>
+      </main>
+
+      <aside data-grill="decisions" class="rounded border border-slate-200 bg-white p-5">
+        <h2 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
+          <span>Decisions</span>
+          <button
+            type="button"
+            data-grill-anchor="decisions"
+            aria-label="Copy anchor reference for Decisions"
+            class="rounded px-1 text-xs font-normal text-slate-400 hover:text-slate-700"
+          >
+            #
+          </button>
+        </h2>
+        <ol class="mt-3 space-y-3 text-sm text-slate-700">
+          <li>
+            <p class="font-semibold">@surface</p>
+            <p class="mt-1 text-xs text-slate-500">
+              <span class="font-mono text-green-700">[spec]</span> self-contained HTML file per turn; no daemon
+            </p>
+          </li>
+          <li>
+            <p class="font-semibold">@feedback-channel</p>
+            <p class="mt-1 text-xs text-slate-500">
+              <span class="font-mono text-green-700">[spec]</span> in-page composer + canonical chat.md
+            </p>
+            <p class="text-xs text-slate-500">
+              <span class="font-mono text-amber-700">[draft]</span> send via clipboard; FS Access API deferred
+            </p>
+          </li>
+        </ol>
+      </aside>
+    </div>
+
+    <script>
+      (function () {
+        const composer = document.querySelector("[data-grill-composer]");
+        const composerTextarea = composer ? composer.querySelector("textarea") : null;
+
+        document.querySelectorAll("[data-grill-anchor]").forEach(function (btn) {
+          btn.addEventListener("click", async function () {
+            const ref = "> @" + btn.dataset.grillAnchor + ": ";
+            if (composerTextarea) {
+              const ta = composerTextarea;
+              const cursor = ta.selectionStart ?? ta.value.length;
+              const before = ta.value.substring(0, cursor);
+              const after = ta.value.substring(cursor);
+              const needsBreak = before.length > 0 && !before.endsWith("\n");
+              const insertion = (needsBreak ? "\n" : "") + ref;
+              ta.value = before + insertion + after;
+              ta.focus();
+              const newCursor = cursor + insertion.length;
+              ta.setSelectionRange(newCursor, newCursor);
+            } else {
+              try {
+                await navigator.clipboard.writeText(ref);
+              } catch (e) {
+                console.warn("clipboard write failed:", e);
+                return;
+              }
+            }
+            const original = btn.textContent;
+            btn.textContent = composerTextarea ? "added" : "copied";
+            btn.classList.add("copied");
+            setTimeout(function () {
+              btn.textContent = original;
+              btn.classList.remove("copied");
+            }, 1200);
+          });
+        });
+
+        const sendBtn = document.querySelector("[data-grill-send]");
+        if (sendBtn && composerTextarea) {
+          sendBtn.addEventListener("click", async function () {
+            const text = composerTextarea.value.trim();
+            if (!text) return;
+            try {
+              await navigator.clipboard.writeText(text);
+            } catch (e) {
+              console.warn("clipboard write failed:", e);
+              return;
+            }
+            const original = sendBtn.textContent;
+            sendBtn.textContent = "copied — paste in chat.md";
+            sendBtn.classList.add("sent");
+            setTimeout(function () {
+              sendBtn.textContent = original;
+              sendBtn.classList.remove("sent");
+            }, 3000);
+          });
+        }
+      })();
+    </script>
+  </body>
+</html>
