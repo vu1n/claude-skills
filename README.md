@@ -1,4 +1,4 @@
-# claude-skills
+# agent-skills
 
 Personal agent skills, versioned and shareable. Format works with Claude Code, Codex, and any other host that consumes `SKILL.md` files.
 
