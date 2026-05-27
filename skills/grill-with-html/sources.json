@@ -7,11 +7,16 @@
   {
     "url": "https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/grill-with-docs/SKILL.md",
     "sha": "3e35025119ba03efe7983dfdec3c8b96918142e3978512f3c2bf66d428310c7e",
-    "took": "Three-criteria rule for ADRs (hard-to-reverse + surprising + real trade-off); discipline of offering ADRs sparingly; CONTEXT.md compatibility stub format; challenge-fuzzy-language and stress-test-with-scenarios sharpening discipline."
+    "took": "Three-criteria rule for ADRs (hard-to-reverse + surprising + real trade-off); discipline of offering ADRs sparingly; CONTEXT.md compatibility shape; sharpening discipline (challenge fuzzy language, stress-test with scenarios, cross-reference with code)."
   },
   {
     "url": "https://raw.githubusercontent.com/ThariqS/html-effectiveness/main/README.md",
     "sha": "2875d5eea955b125bd73f0d6120c53458c2797b5a3513de52a21f16930f24cb0",
-    "took": "Self-contained single-file HTML artifacts with no daemon, no build step; copy-to-clipboard feedback as the durable export mechanism. Anchor-into-clipboard pattern adapts this: instead of a copy-export button at the end, each annotatable region has an anchor button that copies a markdown reference the user pastes into a sidecar feedback.md."
+    "took": "Self-contained single-file HTML artifacts as design surfaces; no build step, no daemon assumption. The current skill adapts this for a server-backed living document, but the single-file ethos comes from here."
+  },
+  {
+    "url": "https://raw.githubusercontent.com/Lex-Inc/roughdraft/main/README.md",
+    "sha": "23e384a0565f8a735217bef9c9ed09a4a598a0cba753ff856cce23903d6863be",
+    "took": "Inline-annotations-in-the-source-file pattern. Roughdraft uses CriticMarkup syntax embedded in markdown so the file itself carries comments, suggested edits, and metadata — the file is the canonical store, the viewer is just a renderer. We adapted this for HTML using semantic elements: <mark> for highlights, <aside data-comment-target> for paired comments, <article data-from> for chat turns. The HTML file IS the design + chat + decisions + annotations, with the server as a sync layer."
   }
 ]

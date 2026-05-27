@@ -18,7 +18,7 @@ cp -r skills/grill-with-html ~/.claude/skills/
 
 ## Skills
 
-- **`grill-with-html`** — Interview the user one question at a time about a UI/UX or design plan. Each turn produces a versioned self-contained HTML artifact (`turn-NN.html`); chat history lives in a single sibling `chat.md`. Optional one-file Python server (`grill-server.py`, stdlib only, no install) gives the in-page composer live bidirectional chat; without the server, file:// mode still works via copy-to-clipboard fallback. Composes the grill-me interview methodology, grill-with-docs ADR discipline, and the html-effectiveness self-contained-artifact pattern. See [`skills/grill-with-html/SKILL.md`](skills/grill-with-html/SKILL.md).
+- **`grill-with-html`** — Interview the user one question at a time about a UI/UX or design plan. One living `design.html` file holds the design surface, the conversation (as `<article>` elements), the decisions sidebar, and any user annotations (as `<mark>` + paired `<aside>` comments) — all inline as semantic HTML. A bundled stdlib Python server (`grill-server.py`, no install) lets the browser write back to the file when the user replies or annotates; the agent edits the file directly. Per-turn history is just git. Composes grill-me (interview methodology), grill-with-docs (ADR discipline), html-effectiveness (single-file artifact ethos), and roughdraft (inline-annotations-in-the-source-file). See [`skills/grill-with-html/SKILL.md`](skills/grill-with-html/SKILL.md).
 
 ## Using `grill-with-html`
 
@@ -26,23 +26,19 @@ After installing the skill, trigger it by asking your agent to grill you on a vi
 
 > Grill me on the session-resume UI I'm thinking about.
 
-The agent picks a slug, scaffolds `docs/design/<slug>/turn-01.html` from the skill's `template/`, writes the first question into `chat.md`, and the loop begins.
+The agent picks a slug, copies the template to `docs/design/<slug>/design.html`, fills the design surface with HTML that visualizes the thing being grilled, appends its first question to `<section data-chat>`, then starts the server:
 
-Two ways to open the session:
+```sh
+python3 skills/grill-with-html/server/grill-server.py docs/design/<slug>/
+# open http://127.0.0.1:4388/design.html
+```
 
-- **Live mode** (recommended for active grilling):
-  ```sh
-  python3 skills/grill-with-html/server/grill-server.py docs/design/<slug>/
-  # then open http://127.0.0.1:4388/turn-01.html
-  ```
-  Composer Send posts directly; conversation view polls `chat.md` every 2s; no copy/paste round-trip.
-- **File mode** (read-only review, or if you don't want to start the server):
-  ```sh
-  open docs/design/<slug>/turn-01.html
-  ```
-  Composer Send falls back to copy-to-clipboard; you paste into `chat.md` under the current turn's `**User**:` block, then tell the agent.
+In the browser:
+- Read the agent's question in the Conversation section. Anchor references like `@m1` are clickable — they scroll to and flash the marked region in the design surface.
+- Type your reply in the composer at the bottom. Hit Send; the conversation view updates within ~2s.
+- Select any text in the design surface to open an inline annotation prompt. Write a comment, hit Save; the selection gets wrapped in a `<mark>` and your comment appears as an `<aside>` in the conversation.
 
-Each turn produces a new versioned snapshot. Open the highest-numbered `turn-NN.html` for the latest design state. Click `#` next to any section heading to insert an anchor reference (`> @<id>:`) into the composer for precision when referencing parts of the artifact. End the session by telling the agent you're done — resolved decisions live in `decisions.md`, chat history in `chat.md`, the design's evolution in the diffs between turn files. Commit the whole directory; the design process is in git.
+The agent edits `design.html` directly; the server's job is to handle browser-initiated writes. Per-turn history is just git — `git log --oneline docs/design/<slug>/design.html` is the turn-by-turn record. Open `design.html` in any browser without the server too — chat and decisions still render (server only adds live writes).
 
 ## Spun off
 

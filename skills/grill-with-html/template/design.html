@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Design</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      mark[data-annotation] {
+        background-color: rgb(254, 240, 138);
+        padding: 0 0.1em;
+        cursor: pointer;
+      }
+      mark[data-annotation].grill-mark-active {
+        outline: 2px solid rgb(202, 138, 4);
+        outline-offset: 1px;
+      }
+      .grill-highlight-flash {
+        animation: grill-flash 1.4s ease-out;
+      }
+      @keyframes grill-flash {
+        0% { background-color: rgb(253, 230, 138); }
+        100% { background-color: transparent; }
+      }
+      [data-server-status="online"]::before { background-color: rgb(22, 163, 74); }
+      [data-server-status="offline"]::before { background-color: rgb(148, 163, 184); }
+      [data-server-status]::before {
+        content: "";
+        display: inline-block;
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 50%;
+        margin-right: 0.4rem;
+        vertical-align: middle;
+      }
+      [data-annotation-prompt][hidden] { display: none; }
+    </style>
+  </head>
+  <body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
+    <div class="mx-auto grid max-w-6xl grid-cols-1 gap-6 p-6 lg:grid-cols-[1fr_300px]">
+      <main class="space-y-6">
+        <header class="flex items-baseline justify-between">
+          <div>
+            <p class="text-xs uppercase tracking-widest text-slate-500">design</p>
+            <h1 class="mt-1 text-2xl font-semibold" data-grill-title>Design title</h1>
+          </div>
+          <p
+            data-server-status="offline"
+            class="text-xs font-mono text-slate-500"
+            title="Server status — green when grill-server.py is running, gray when opened from disk."
+          >
+            checking…
+          </p>
+        </header>
+
+        <section data-design-surface class="space-y-4">
+          <section id="placeholder" class="rounded border border-slate-200 bg-white p-5">
+            <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-600">
+              Design surface
+            </h2>
+            <p class="mt-2 text-sm text-slate-600">
+              The agent fills this region with whatever HTML best represents the thing being grilled —
+              sections, forms, lists, tables, SVG diagrams, layouts. Wrap any phrase the conversation
+              needs to reference in
+              <code class="text-slate-800">&lt;mark id="m1"&gt;…&lt;/mark&gt;</code>; the chat can then
+              link to it as <code class="text-slate-800">@m1</code>.
+            </p>
+          </section>
+        </section>
+
+        <section data-chat class="rounded border border-slate-200 bg-white">
+          <header class="border-b border-slate-200 px-5 py-3">
+            <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-600">
+              Conversation
+            </h2>
+          </header>
+        </section>
+
+        <article data-composer class="rounded border border-blue-200 bg-white">
+          <header class="border-b border-slate-100 px-4 py-2">
+            <p class="text-xs font-semibold uppercase tracking-wide text-blue-600">composer</p>
+          </header>
+          <textarea
+            rows="4"
+            placeholder="Type your reply. References like @m1 are auto-linked to marks above. Selecting text in the design surface opens an inline annotation prompt."
+            class="block w-full resize-y border-0 bg-transparent px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
+          ></textarea>
+          <footer class="flex items-center justify-between gap-3 border-t border-slate-100 bg-slate-50 px-4 py-2">
+            <p data-composer-hint class="text-xs text-slate-500">
+              Send copies your reply to the clipboard.
+            </p>
+            <button
+              type="button"
+              data-grill-send
+              class="rounded bg-blue-600 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white hover:bg-blue-700"
+            >
+              Send
+            </button>
+          </footer>
+        </article>
+      </main>
+
+      <aside data-decisions class="self-start rounded border border-slate-200 bg-white p-5">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-600">Decisions</h2>
+        <p class="mt-2 text-xs text-slate-500 italic" data-decisions-empty>none yet</p>
+      </aside>
+    </div>
+
+    <div
+      data-annotation-prompt
+      hidden
+      class="fixed z-50 w-80 rounded border border-slate-300 bg-white p-3 shadow-lg"
+    >
+      <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Add comment</p>
+      <p data-annotation-selection class="mt-2 max-h-16 overflow-auto rounded bg-slate-100 px-2 py-1 text-xs italic text-slate-600"></p>
+      <textarea
+        rows="3"
+        class="mt-2 block w-full resize-none rounded border border-slate-200 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+        placeholder="What about this?"
+      ></textarea>
+      <div class="mt-2 flex justify-end gap-2">
+        <button
+          type="button"
+          data-annotation-cancel
+          class="rounded px-2 py-1 text-xs text-slate-600 hover:bg-slate-100"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          data-annotation-save
+          class="rounded bg-blue-600 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-white hover:bg-blue-700"
+        >
+          Save
+        </button>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const statusEl = document.querySelector("[data-server-status]");
+        const composerHint = document.querySelector("[data-composer-hint]");
+        const composer = document.querySelector("[data-composer]");
+        const composerTextarea = composer.querySelector("textarea");
+        const sendBtn = composer.querySelector("[data-grill-send]");
+        const annotationPrompt = document.querySelector("[data-annotation-prompt]");
+        const annotationSelectionEl = annotationPrompt.querySelector("[data-annotation-selection]");
+        const annotationTextarea = annotationPrompt.querySelector("textarea");
+        const annotationSaveBtn = annotationPrompt.querySelector("[data-annotation-save]");
+        const annotationCancelBtn = annotationPrompt.querySelector("[data-annotation-cancel]");
+        const designSurface = document.querySelector("[data-design-surface]");
+        const chatSection = document.querySelector("[data-chat]");
+
+        let serverMode = false;
+        let lastSnapshot = null;
+        let pendingAnnotation = null;
+
+        async function detectServer() {
+          try {
+            const ctl = new AbortController();
+            const timeout = setTimeout(() => ctl.abort(), 800);
+            const res = await fetch("/healthz", { signal: ctl.signal });
+            clearTimeout(timeout);
+            return res.ok;
+          } catch (_) {
+            return false;
+          }
+        }
+
+        function setMode(online) {
+          serverMode = online;
+          statusEl.dataset.serverStatus = online ? "online" : "offline";
+          statusEl.textContent = online ? "server online" : "file:// mode";
+          composerHint.innerHTML = online
+            ? "Send posts your reply directly into the conversation."
+            : 'Send copies your reply to the clipboard. Paste into <code>design.html</code> manually.';
+        }
+
+        function activateMarkRefsIn(rootEl) {
+          const text = rootEl.innerHTML;
+          const replaced = text.replace(/@([a-zA-Z][\w-]*)/g, (match, id) => {
+            const target = document.getElementById(id);
+            if (!target) return match;
+            return `<a href="#${id}" data-mark-ref="${id}" class="rounded bg-slate-100 px-1 font-mono text-xs text-slate-700 hover:bg-amber-100">@${id}</a>`;
+          });
+          if (replaced !== text) rootEl.innerHTML = replaced;
+        }
+
+        function wireMarkRefs() {
+          document.querySelectorAll("[data-mark-ref]").forEach((a) => {
+            if (a.dataset.wired) return;
+            a.dataset.wired = "1";
+            a.addEventListener("click", (e) => {
+              const id = a.dataset.markRef;
+              const target = document.getElementById(id);
+              if (!target) return;
+              e.preventDefault();
+              target.scrollIntoView({ behavior: "smooth", block: "center" });
+              target.classList.add("grill-highlight-flash");
+              setTimeout(() => target.classList.remove("grill-highlight-flash"), 1500);
+            });
+          });
+        }
+
+        function styleChatArticles() {
+          chatSection.querySelectorAll("article").forEach((art) => {
+            if (art.dataset.styled) return;
+            art.dataset.styled = "1";
+            const from = art.dataset.from || "agent";
+            art.classList.add("px-5", "py-4", "text-sm", "text-slate-700");
+            if (from === "user") {
+              art.classList.add("border-t", "border-slate-100", "bg-blue-50");
+            } else {
+              art.classList.add("border-t", "border-slate-100", "bg-slate-50");
+            }
+            const label = document.createElement("p");
+            label.className = "mb-1 text-xs font-semibold uppercase tracking-wide " + (from === "user" ? "text-blue-600" : "text-slate-500");
+            const turn = art.dataset.turn ? `Turn ${art.dataset.turn} · ` : "";
+            const branch = art.dataset.branch ? ` · ${art.dataset.branch}` : "";
+            label.textContent = `${turn}${from}${branch}`;
+            art.prepend(label);
+            activateMarkRefsIn(art);
+          });
+          chatSection.querySelectorAll("aside[data-comment-target]").forEach((a) => {
+            if (a.dataset.styled) return;
+            a.dataset.styled = "1";
+            a.classList.add("border-t", "border-slate-100", "bg-amber-50", "px-5", "py-3", "text-sm", "text-slate-700");
+            const target = a.dataset.commentTarget;
+            const label = document.createElement("p");
+            label.className = "mb-1 text-xs font-semibold uppercase tracking-wide text-amber-700";
+            label.innerHTML = `comment on <a href="#${target}" data-mark-ref="${target}" class="font-mono">@${target}</a>`;
+            a.prepend(label);
+          });
+          wireMarkRefs();
+        }
+
+        function refreshDecisionsEmptyState() {
+          const decisionsAside = document.querySelector("[data-decisions]");
+          const empty = decisionsAside.querySelector("[data-decisions-empty]");
+          const hasContent = decisionsAside.querySelector("article");
+          if (empty) empty.style.display = hasContent ? "none" : "";
+        }
+
+        async function refreshFromServer() {
+          try {
+            const res = await fetch("/design.html?_=" + Date.now());
+            if (!res.ok) return;
+            const html = await res.text();
+            if (html === lastSnapshot) return;
+            lastSnapshot = html;
+            const doc = new DOMParser().parseFromString(html, "text/html");
+            const newDesign = doc.querySelector("[data-design-surface]");
+            const newChat = doc.querySelector("[data-chat]");
+            const newDecisions = doc.querySelector("[data-decisions]");
+            if (newDesign) designSurface.innerHTML = newDesign.innerHTML;
+            if (newChat) chatSection.innerHTML = newChat.innerHTML;
+            if (newDecisions) {
+              const aside = document.querySelector("[data-decisions]");
+              aside.innerHTML = newDecisions.innerHTML;
+            }
+            styleChatArticles();
+            refreshDecisionsEmptyState();
+          } catch (e) {
+            console.warn("refresh failed:", e);
+          }
+        }
+
+        sendBtn.addEventListener("click", async function () {
+          const text = composerTextarea.value.trim();
+          if (!text) return;
+          if (serverMode) {
+            try {
+              const res = await fetch("/reply", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text }),
+              });
+              if (!res.ok) throw new Error("post failed");
+              composerTextarea.value = "";
+              refreshFromServer();
+            } catch (e) {
+              console.warn("reply POST failed:", e);
+            }
+          } else {
+            try {
+              await navigator.clipboard.writeText(text);
+            } catch (_) {}
+            sendBtn.textContent = "copied";
+            setTimeout(() => (sendBtn.textContent = "Send"), 1500);
+          }
+        });
+
+        document.addEventListener("mouseup", function () {
+          const sel = window.getSelection();
+          if (!sel || sel.isCollapsed) return;
+          const text = sel.toString().trim();
+          if (!text || text.length < 2) return;
+          const node = sel.anchorNode;
+          let el = node && node.nodeType === 1 ? node : node && node.parentElement;
+          while (el && !(el.id && designSurface.contains(el))) {
+            el = el.parentElement;
+          }
+          if (!el || !designSurface.contains(el)) return;
+          pendingAnnotation = { element_id: el.id, selected_text: text };
+          annotationSelectionEl.textContent = text;
+          annotationTextarea.value = "";
+          const rect = sel.getRangeAt(0).getBoundingClientRect();
+          annotationPrompt.style.top = (window.scrollY + rect.bottom + 8) + "px";
+          annotationPrompt.style.left = (window.scrollX + rect.left) + "px";
+          annotationPrompt.hidden = false;
+          annotationTextarea.focus();
+        });
+
+        annotationCancelBtn.addEventListener("click", () => {
+          annotationPrompt.hidden = true;
+          pendingAnnotation = null;
+        });
+
+        annotationSaveBtn.addEventListener("click", async () => {
+          if (!pendingAnnotation) return;
+          const comment = annotationTextarea.value.trim();
+          if (!comment) return;
+          if (!serverMode) {
+            console.warn("annotation requires server mode");
+            return;
+          }
+          try {
+            const res = await fetch("/annotation", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ...pendingAnnotation, comment }),
+            });
+            if (!res.ok) throw new Error("annotation post failed");
+            annotationPrompt.hidden = true;
+            pendingAnnotation = null;
+            refreshFromServer();
+          } catch (e) {
+            console.warn("annotation POST failed:", e);
+          }
+        });
+
+        (async function init() {
+          const online = await detectServer();
+          setMode(online);
+          designSurface.querySelectorAll("*").forEach(activateMarkRefsIn);
+          styleChatArticles();
+          refreshDecisionsEmptyState();
+          if (online) {
+            await refreshFromServer();
+            setInterval(refreshFromServer, 2000);
+          }
+        })();
+      })();
+    </script>
+  </body>
+</html>
